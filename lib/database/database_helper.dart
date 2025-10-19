@@ -56,13 +56,11 @@ class DatabaseHelper {
 
   Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      // Drop old table and create new one with updated schema
       await db.execute('DROP TABLE IF EXISTS messages');
       await _createDB(db, newVersion);
     }
   }
 
-  // Insert a message
   Future<int> insertMessage(Message message) async {
     final db = await database;
     return await db.insert(
@@ -72,7 +70,6 @@ class DatabaseHelper {
     );
   }
 
-  // Get all messages ordered by timestamp
   Future<List<Message>> getAllMessages() async {
     final db = await database;
     final result = await db.query(
@@ -83,7 +80,6 @@ class DatabaseHelper {
     return result.map((map) => Message.fromMap(map)).toList();
   }
 
-  // Get messages for a conversation between two users
   Future<List<Message>> getConversationMessages(
     String userId1,
     String userId2,
@@ -99,7 +95,6 @@ class DatabaseHelper {
     return result.map((map) => Message.fromMap(map)).toList();
   }
 
-  // Get messages sent by a specific user
   Future<List<Message>> getMessagesBySender(String senderId) async {
     final db = await database;
     final result = await db.query(
@@ -112,7 +107,6 @@ class DatabaseHelper {
     return result.map((map) => Message.fromMap(map)).toList();
   }
 
-  // Get unsynced messages
   Future<List<Message>> getUnsyncedMessages() async {
     final db = await database;
     final result = await db.query(
@@ -125,7 +119,6 @@ class DatabaseHelper {
     return result.map((map) => Message.fromMap(map)).toList();
   }
 
-  // Update message sync status
   Future<int> updateMessageSyncStatus(int id, bool synced) async {
     final db = await database;
     return await db.update(
@@ -136,7 +129,6 @@ class DatabaseHelper {
     );
   }
 
-  // Update message by Firebase ID
   Future<int> updateMessageByFirebaseId(String firebaseId, Map<String, dynamic> updates) async {
     final db = await database;
     return await db.update(
@@ -147,7 +139,6 @@ class DatabaseHelper {
     );
   }
 
-  // Mark message as read
   Future<int> markMessageAsRead(int id) async {
     final db = await database;
     return await db.update(
@@ -158,7 +149,6 @@ class DatabaseHelper {
     );
   }
 
-  // Delete a message
   Future<int> deleteMessage(int id) async {
     final db = await database;
     return await db.delete(
@@ -168,13 +158,11 @@ class DatabaseHelper {
     );
   }
 
-  // Delete all messages
   Future<int> deleteAllMessages() async {
     final db = await database;
     return await db.delete('messages');
   }
 
-  // Delete messages for a specific conversation
   Future<int> deleteConversationMessages(String userId1, String userId2) async {
     final db = await database;
     return await db.delete(
@@ -184,13 +172,8 @@ class DatabaseHelper {
     );
   }
 
-  // Close database
   Future close() async {
     final db = await database;
     db.close();
   }
 }
-
-
-
-

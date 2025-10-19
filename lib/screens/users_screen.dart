@@ -5,7 +5,6 @@ import '../providers/auth_provider.dart';
 import '../models/user.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
-import 'fcm_test_screen.dart';
 
 class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
@@ -75,20 +74,6 @@ class UsersScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const FCMTestScreen(),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFF6C63FF),
-        foregroundColor: Colors.white,
-        tooltip: 'Test FCM Notifications',
-        child: const Icon(Icons.notifications_active),
-      ),
       body: Consumer<AuthProvider>(
         builder: (context, auth, _) {
           final currentUser = auth.currentUser;
@@ -96,15 +81,8 @@ class UsersScreen extends StatelessWidget {
             return const Center(child: Text('Not authenticated'));
           }
 
-          // DEBUG: Print current user info
-          debugPrint('🔐 CURRENT LOGGED IN USER:');
-          debugPrint('   Name: ${currentUser.displayName}');
-          debugPrint('   Email: ${currentUser.email}');
-          debugPrint('   UID: ${currentUser.uid}');
-
           return Column(
             children: [
-              // Current User Info
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -115,7 +93,7 @@ class UsersScreen extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -130,7 +108,7 @@ class UsersScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -138,7 +116,7 @@ class UsersScreen extends StatelessWidget {
                       ),
                       child: CircleAvatar(
                         radius: 30,
-                        backgroundColor: const Color(0xFF6C63FF).withOpacity(0.2),
+                        backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
                         child: Text(
                           currentUser.displayName[0].toUpperCase(),
                           style: const TextStyle(
@@ -167,7 +145,7 @@ class UsersScreen extends StatelessWidget {
                             currentUser.email,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                             ),
                           ),
                         ],
@@ -177,7 +155,6 @@ class UsersScreen extends StatelessWidget {
                 ),
               ),
               
-              // Users List
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -219,13 +196,13 @@ class UsersScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6C63FF).withOpacity(0.1),
+                                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.people_outline_rounded,
                                 size: 80,
-                                color: const Color(0xFF6C63FF).withOpacity(0.6),
+                                color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -256,12 +233,6 @@ class UsersScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final userData = users[index].data() as Map<String, dynamic>;
                         final user = AppUser.fromMap(userData);
-
-                        // DEBUG: Print user info
-                        debugPrint('👤 USER IN LIST:');
-                        debugPrint('   Name: ${user.displayName}');
-                        debugPrint('   Email: ${user.email}');  
-                        debugPrint('   UID: ${user.uid}');
                         
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -312,7 +283,7 @@ class UsersScreen extends StatelessWidget {
                             trailing: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6C63FF).withOpacity(0.1),
+                                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(
@@ -321,11 +292,6 @@ class UsersScreen extends StatelessWidget {
                               ),
                             ),
                             onTap: () {
-                              debugPrint('\n🚀 OPENING CHAT:');
-                              debugPrint('   Current User UID: ${currentUser.uid}');
-                              debugPrint('   Chat With User UID: ${user.uid}');
-                              debugPrint('   Chat With User Email: ${user.email}');
-                              
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -349,4 +315,3 @@ class UsersScreen extends StatelessWidget {
     );
   }
 }
-

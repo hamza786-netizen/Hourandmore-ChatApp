@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import '../models/listing.dart';
 import '../services/listing_service.dart';
 
@@ -21,10 +20,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
   List<Listing> _listings = [];
   List<Listing> _filteredListings = [];
   bool _isLoading = false;
-  bool _isGridView = false;
   String _selectedStatus = 'all';
-  bool _showFeaturedOnly = false;
-  bool _showInsuranceOnly = false;
 
   @override
   void initState() {
@@ -72,7 +68,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
   void _applyFilters() {
     setState(() {
       _filteredListings = _listings.where((listing) {
-        // Search query filter
         if (_searchController.text.isNotEmpty) {
           final query = _searchController.text.toLowerCase();
           if (!listing.title.toLowerCase().contains(query) &&
@@ -82,14 +77,12 @@ class _ListingsScreenState extends State<ListingsScreen> {
           }
         }
 
-        // Location filter
         if (_locationController.text.isNotEmpty) {
           if (!listing.location.toLowerCase().contains(_locationController.text.toLowerCase())) {
             return false;
           }
         }
 
-        // Price range filter
         if (_minPriceController.text.isNotEmpty) {
           final minPrice = double.tryParse(_minPriceController.text);
           if (minPrice != null) {
@@ -106,7 +99,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
           }
         }
 
-        // Capacity filter
         if (_minCapacityController.text.isNotEmpty) {
           final minCapacity = int.tryParse(_minCapacityController.text);
           if (minCapacity != null && listing.capacity < minCapacity) {
@@ -114,20 +106,9 @@ class _ListingsScreenState extends State<ListingsScreen> {
           }
         }
 
-        // Status filter
         if (_selectedStatus != 'all' && listing.status != _selectedStatus) {
           return false;
         }
-
-        // Featured filter - Disabled for now, kept for future use
-        // if (_showFeaturedOnly && !listing.isFeatured) {
-        //   return false;
-        // }
-
-        // Insurance filter - Disabled for now, kept for future use
-        // if (_showInsuranceOnly && !listing.isInsurance) {
-        //   return false;
-        // }
 
         return true;
       }).toList();
@@ -142,8 +123,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
       _maxPriceController.clear();
       _minCapacityController.clear();
       _selectedStatus = 'all';
-      // _showFeaturedOnly = false; // Disabled for now, kept for future use
-      // _showInsuranceOnly = false; // Disabled for now, kept for future use
       _filteredListings = _listings;
     });
   }
@@ -169,7 +148,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
       ),
       body: Column(
         children: [
-          // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
             color: const Color(0xFF6C63FF),
@@ -198,7 +176,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
             ),
           ),
           
-          // Results count
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
@@ -220,7 +197,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
             ),
           ),
           
-          // Listings
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -245,28 +221,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
                           ],
                         ),
                       )
-                    : _buildListView(), // Only list view for now, grid view disabled
+                    : _buildListView(),
           ),
         ],
       ),
-    );
-  }
-
-  // Grid view method - disabled for now, kept for future use
-  Widget _buildGridView() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: _filteredListings.length,
-      itemBuilder: (context, index) {
-        final listing = _filteredListings[index];
-        return _buildListingCard(listing);
-      },
     );
   }
 
@@ -291,7 +249,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        // onTap: () => _showListingDetails(listing), // Disabled for now, will be used in future
         borderRadius: BorderRadius.circular(12),
         child: isList ? _buildListCard(listing) : _buildGridCard(listing),
       ),
@@ -302,7 +259,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Image
         Expanded(
           flex: 3,
           child: Container(
@@ -351,7 +307,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
           ),
         ),
         
-        // Content
         Expanded(
           flex: 2,
           child: Padding(
@@ -403,11 +358,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                           '${listing.capacity}',
                           style: const TextStyle(fontSize: 12),
                         ),
-                        // Insurance icon removed - kept for future use if needed
-                        // if (listing.isInsurance) ...[
-                        //   const SizedBox(width: 8),
-                        //   const Icon(Icons.security, size: 16, color: Colors.green),
-                        // ],
                       ],
                     ),
                   ],
@@ -421,11 +371,10 @@ class _ListingsScreenState extends State<ListingsScreen> {
   }
 
   Widget _buildListCard(Listing listing) {
-    return Container(
+    return SizedBox(
       height: 140,
       child: Row(
         children: [
-          // Image
           Container(
             width: 120,
             height: 120,
@@ -472,7 +421,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                   ),
           ),
           
-          // Content
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -480,7 +428,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Title and Location
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -506,7 +453,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                     ],
                   ),
                   
-                  // Description
                   Text(
                     listing.description,
                     style: const TextStyle(fontSize: 12),
@@ -514,7 +460,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   
-                  // Price and Capacity
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -535,11 +480,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                           const Icon(Icons.people, size: 16, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text('${listing.capacity}'),
-                          // Insurance icon removed - kept for future use if needed
-                          // if (listing.isInsurance) ...[
-                          //   const SizedBox(width: 8),
-                          //   const Icon(Icons.security, size: 16, color: Colors.green),
-                          // ],
                         ],
                       ),
                     ],
@@ -562,7 +502,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Location
               TextField(
                 controller: _locationController,
                 decoration: const InputDecoration(
@@ -572,7 +511,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Price Range
               Row(
                 children: [
                   Expanded(
@@ -600,7 +538,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Capacity
               TextField(
                 controller: _minCapacityController,
                 decoration: const InputDecoration(
@@ -611,7 +548,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
               ),
               const SizedBox(height: 16),
               
-              // Status
               DropdownButtonFormField<String>(
                 value: _selectedStatus,
                 decoration: const InputDecoration(
@@ -630,26 +566,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              
-              // Checkboxes - Disabled for now, kept for future use
-              // CheckboxListTile(
-              //   title: const Text('Featured Only'),
-              //   value: _showFeaturedOnly,
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _showFeaturedOnly = value ?? false;
-              //     });
-              //   },
-              // ),
-              // CheckboxListTile(
-              //   title: const Text('Insurance Only'),
-              //   value: _showInsuranceOnly,
-              //   onChanged: (value) {
-              //     setState(() {
-              //       _showInsuranceOnly = value ?? false;
-              //     });
-              //   },
-              // ),
             ],
           ),
         ),
@@ -673,72 +589,6 @@ class _ListingsScreenState extends State<ListingsScreen> {
               _applyFilters();
             },
             child: const Text('Apply'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showListingDetails(Listing listing) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(listing.title),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (listing.images.isNotEmpty)
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: NetworkImage(listing.images.first.url),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              Text('Description: ${listing.description}'),
-              const SizedBox(height: 8),
-              Text('Location: ${listing.location}'),
-              const SizedBox(height: 8),
-              Text('Price: ${listing.pricePerHour} SAR/hour'),
-              if (listing.pricePerDay != null)
-                Text('Price: ${listing.pricePerDay} SAR/day'),
-              const SizedBox(height: 8),
-              Text('Capacity: ${listing.capacity} ${listing.capacityType}'),
-              const SizedBox(height: 8),
-              Text('Status: ${listing.status}'),
-              if (listing.isInsurance)
-                const Text('Insurance: Included'),
-              if (listing.isFeatured)
-                const Text('Featured: Yes'),
-              const SizedBox(height: 8),
-              Text('Host: ${listing.host.name}'),
-              Text('Contact: ${listing.host.phone}'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implement booking functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Booking functionality coming soon!'),
-                ),
-              );
-            },
-            child: const Text('Book Now'),
           ),
         ],
       ),

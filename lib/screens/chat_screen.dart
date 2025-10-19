@@ -5,7 +5,6 @@ import '../models/message.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
-import '../test_firestore.dart';
 import 'settings_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -30,9 +29,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    
-    // TEST: Check what's in Firestore
-    FirestoreTest.testConnection();
   }
 
   void _scrollToBottom() {
@@ -64,11 +60,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
     _messageController.clear();
     
     try {
-      debugPrint('🔵 SENDING MESSAGE:');
-      debugPrint('   From: ${currentUser.uid} (${currentUser.email})');
-      debugPrint('   To: ${widget.receiverUser!.uid} (${widget.receiverUser!.email})');
-      debugPrint('   Text: "$messageText"');
-      
       await chatProvider.sendMessage(
         text: messageText,
         senderId: currentUser.uid,
@@ -76,12 +67,9 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         receiverId: widget.receiverUser!.uid,
       );
       
-      debugPrint('✅ Message sent successfully!');
-      
       _animationController.forward(from: 0);
       _scrollToBottom();
     } catch (e) {
-      debugPrint('❌ Failed to send message: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -108,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.delete_forever, color: Colors.red, size: 28),
@@ -215,7 +203,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -223,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               ),
               child: CircleAvatar(
                 radius: 18,
-                backgroundColor: currentColor.withOpacity(0.2),
+                backgroundColor: currentColor.withValues(alpha: 0.2),
                 child: Text(
                   widget.receiverUser!.displayName[0].toUpperCase(),
                   style: const TextStyle(
@@ -274,7 +262,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                             child: Text(
                               isOnline ? 'Online' : 'Offline',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 12,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -293,7 +281,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
@@ -309,7 +297,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           Container(
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
@@ -322,7 +310,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
       ),
       body: Column(
         children: [
-          // Messages List
           Expanded(
             child: StreamBuilder<List<Message>>(
               stream: chatProvider.streamConversationMessages(
@@ -330,35 +317,15 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 widget.receiverUser!.uid,
               ),
               builder: (context, snapshot) {
-                debugPrint('🟢 STREAM BUILDER STATE:');
-                debugPrint('   Connection: ${snapshot.connectionState}');
-                debugPrint('   Has Data: ${snapshot.hasData}');
-                debugPrint('   Has Error: ${snapshot.hasError}');
-                if (snapshot.hasError) {
-                  debugPrint('   Error: ${snapshot.error}');
-                }
-                if (snapshot.hasData) {
-                  debugPrint('   Messages Count: ${snapshot.data!.length}');
-                }
-                
-                // Determine online status based on snapshot state
-                final isOnline = !snapshot.hasError && snapshot.hasData;
-                
-                // Show loading only on initial load
                 if (snapshot.connectionState == ConnectionState.waiting && 
                     !snapshot.hasData) {
-                  debugPrint('   → Showing loading indicator');
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
 
-                // Get messages from snapshot or use empty list
                 final messages = snapshot.hasData ? snapshot.data! : <Message>[];
                 
-                debugPrint('   → Displaying ${messages.length} messages');
-                
-                // Auto-scroll on new messages
                 if (messages.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToBottom();
@@ -370,7 +337,6 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             ),
           ),
           
-          // Input Area
           _buildInputArea(currentColor),
         ],
       ),
@@ -386,13 +352,13 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withOpacity(0.1),
+                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.chat_bubble_outline_rounded,
                 size: 80,
-                color: const Color(0xFF6C63FF).withOpacity(0.6),
+                color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 24),
@@ -478,7 +444,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -486,7 +452,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
               ),
               child: CircleAvatar(
                 radius: 16,
-                backgroundColor: messageColor.withOpacity(0.2),
+                backgroundColor: messageColor.withValues(alpha: 0.2),
                 child: Text(
                   widget.receiverUser!.displayName[0].toUpperCase(),
                   style: const TextStyle(
@@ -518,8 +484,8 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 boxShadow: [
                   BoxShadow(
                     color: isCurrentUser 
-                        ? messageColor.withOpacity(0.3)
-                        : Colors.black.withOpacity(0.08),
+                        ? messageColor.withValues(alpha: 0.3)
+                        : Colors.black.withValues(alpha: 0.08),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -544,7 +510,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         DateFormat('HH:mm').format(message.timestamp),
                         style: TextStyle(
                           color: isCurrentUser
-                              ? Colors.white.withOpacity(0.8)
+                              ? Colors.white.withValues(alpha: 0.8)
                               : Colors.grey[600],
                           fontSize: 11,
                         ),
@@ -554,7 +520,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                         Icon(
                           message.isSynced ? Icons.done_all : Icons.access_time,
                           size: 14,
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                         ),
                       ],
                     ],
@@ -576,7 +542,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -620,7 +586,7 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: currentColor.withOpacity(0.4),
+                    color: currentColor.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

@@ -12,7 +12,6 @@ class BiometricService {
 
   BiometricService._init();
 
-  // Check if device supports biometric authentication
   Future<bool> isBiometricAvailable() async {
     try {
       final isAvailable = await _localAuth.canCheckBiometrics;
@@ -23,7 +22,6 @@ class BiometricService {
     }
   }
 
-  // Get available biometric types
   Future<List<BiometricType>> getAvailableBiometrics() async {
     try {
       return await _localAuth.getAvailableBiometrics();
@@ -32,7 +30,6 @@ class BiometricService {
     }
   }
 
-  // Authenticate with biometrics
   Future<bool> authenticateWithBiometrics({
     String reason = 'Please authenticate to continue',
   }) async {
@@ -52,7 +49,6 @@ class BiometricService {
     }
   }
 
-  // Save credentials for biometric login
   Future<void> saveCredentials({
     required String email,
     required String password,
@@ -65,7 +61,6 @@ class BiometricService {
     }
   }
 
-  // Get saved credentials
   Future<Map<String, String>?> getCredentials() async {
     try {
       final email = await _secureStorage.read(key: _emailKey);
@@ -82,7 +77,6 @@ class BiometricService {
     }
   }
 
-  // Delete saved credentials
   Future<void> deleteCredentials() async {
     try {
       await _secureStorage.delete(key: _emailKey);
@@ -92,7 +86,6 @@ class BiometricService {
     }
   }
 
-  // Check if biometric credentials are saved
   Future<bool> hasCredentials() async {
     try {
       final email = await _secureStorage.read(key: _emailKey);
@@ -102,7 +95,6 @@ class BiometricService {
     }
   }
 
-  // Get biometric type name
   String getBiometricTypeName(List<BiometricType> types) {
     if (types.isEmpty) return 'Biometric';
     
@@ -117,5 +109,3 @@ class BiometricService {
     }
   }
 }
-
-

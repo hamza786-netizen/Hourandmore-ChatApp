@@ -2,24 +2,19 @@ import 'package:flutter/material.dart';
 import '../models/message.dart';
 import '../services/chat_service.dart';
 import '../services/firebase_service.dart';
-import '../services/notification_service.dart';
 
 class ChatProvider with ChangeNotifier {
   final ChatService _chatService = ChatService.instance;
   final FirebaseService _firebaseService = FirebaseService.instance;
-  final NotificationService _notificationService = NotificationService.instance;
 
   List<Message> _messages = [];
-  bool _isLoading = false;
   String? _errorMessage;
   bool _isOnline = true;
 
   List<Message> get messages => _messages;
-  bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isOnline => _isOnline;
 
-  // Send a message
   Future<void> sendMessage({
     required String text,
     required String senderId,
@@ -38,7 +33,6 @@ class ChatProvider with ChangeNotifier {
 
       await _chatService.sendMessage(message);
       
-      // Send notification to receiver if token is provided
       if (receiverToken != null) {
         await _chatService.sendMessageNotification(message, receiverToken);
       }
@@ -52,7 +46,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Load messages for a conversation
   Future<void> loadConversationMessages(String userId1, String userId2) async {
     try {
       _messages = await _chatService.getConversationMessages(userId1, userId2);
@@ -65,7 +58,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Stream messages for a conversation
   Stream<List<Message>> streamConversationMessages(
     String userId1,
     String userId2,
@@ -73,7 +65,6 @@ class ChatProvider with ChangeNotifier {
     return _firebaseService.streamConversationMessages(userId1, userId2);
   }
 
-  // Handle incoming message and show notification
   Future<void> handleIncomingMessage(Message message, String currentUserId) async {
     try {
       await _chatService.handleIncomingMessage(message, currentUserId);
@@ -83,7 +74,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Delete all messages
   Future<void> deleteAllMessages() async {
     try {
       await _chatService.deleteAllMessages();
@@ -96,7 +86,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Delete conversation messages
   Future<void> deleteConversationMessages(String userId1, String userId2) async {
     try {
       await _chatService.deleteConversationMessages(userId1, userId2);
@@ -109,7 +98,6 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Sync messages
   Future<void> syncMessages() async {
     try {
       await _chatService.syncToFirebase();
@@ -121,25 +109,14 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  // Set online status (only update if changed)
   void setOnlineStatus(bool online) {
     if (_isOnline != online) {
       _isOnline = online;
-      // Don't notify listeners to prevent rebuild loops
-      // The status is read directly when needed
     }
   }
 
-  // Clear error
   void clearError() {
     _errorMessage = null;
     notifyListeners();
   }
-
-  // Set loading state
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
 }
-

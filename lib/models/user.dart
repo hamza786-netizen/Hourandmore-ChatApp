@@ -17,7 +17,6 @@ class AppUser {
     this.fcmToken,
   });
 
-  // Convert User to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -30,7 +29,6 @@ class AppUser {
     };
   }
 
-  // Create User from Map
   factory AppUser.fromMap(Map<String, dynamic> map) {
     return AppUser(
       uid: map['uid'] as String,
@@ -45,7 +43,6 @@ class AppUser {
     );
   }
 
-  // Copy with method for updates
   AppUser copyWith({
     String? uid,
     String? email,
@@ -66,5 +63,3 @@ class AppUser {
     );
   }
 }
-
-

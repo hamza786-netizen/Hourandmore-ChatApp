@@ -21,7 +21,6 @@ class Message {
     this.isSynced = false,
   });
 
-  // Convert Message to Map for SQLite
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -36,7 +35,6 @@ class Message {
     };
   }
 
-  // Convert Message to Map for Firebase
   Map<String, dynamic> toFirebaseMap() {
     return {
       'text': text,
@@ -48,7 +46,6 @@ class Message {
     };
   }
 
-  // Create Message from SQLite Map
   factory Message.fromMap(Map<String, dynamic> map) {
     return Message(
       id: map['id'] as int?,
@@ -63,7 +60,6 @@ class Message {
     );
   }
 
-  // Create Message from Firebase Map
   factory Message.fromFirebaseMap(Map<String, dynamic> map, String docId) {
     return Message(
       firebaseId: docId,
@@ -77,7 +73,6 @@ class Message {
     );
   }
 
-  // Copy with method
   Message copyWith({
     int? id,
     String? firebaseId,
@@ -102,7 +97,3 @@ class Message {
     );
   }
 }
-
-
-
-
