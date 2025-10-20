@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/chat_provider.dart';
 import 'services/notification_service.dart';
+import 'services/navigation_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/users_screen.dart';
 
@@ -43,9 +44,17 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
+          // Process pending navigation when app becomes ready
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (authProvider.isAuthenticated && !authProvider.isLoading) {
+              NavigationService.instance.processPendingNavigation();
+            }
+          });
+          
           return MaterialApp(
             title: 'Chat App',
             debugShowCheckedModeBanner: false,
+            navigatorKey: NavigationService.instance.navigatorKey,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6C63FF)),
               useMaterial3: true,

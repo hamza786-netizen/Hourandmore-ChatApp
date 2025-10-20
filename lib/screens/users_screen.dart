@@ -3,11 +3,51 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/auth_provider.dart';
 import '../models/user.dart';
+import '../services/notification_service.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
 
 class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
+
+  Future<void> _testNotification(BuildContext context) async {
+    // Get the first user from the list to test with
+    final usersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .limit(1)
+        .get();
+    
+    if (usersSnapshot.docs.isNotEmpty) {
+      final userData = usersSnapshot.docs.first.data();
+      final testUser = AppUser.fromMap(userData);
+      
+      // Test the local notification with payload
+      await NotificationService.instance.testLocalNotificationWithPayload(
+        senderId: testUser.uid,
+        receiverId: 'current_user_id', // This would be the current user's ID
+        senderName: testUser.displayName,
+        messageText: 'Test message for notification navigation',
+      );
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Test notification sent! Tap it to test navigation.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No users found to test with'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   Future<void> _handleSignOut(BuildContext context) async {
     final confirm = await showDialog<bool>(
@@ -67,6 +107,11 @@ class UsersScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active, color: Colors.white),
+            onPressed: () => _testNotification(context),
+            tooltip: 'Test Notification',
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _handleSignOut(context),
