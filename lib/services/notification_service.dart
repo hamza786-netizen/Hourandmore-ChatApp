@@ -143,6 +143,7 @@ class NotificationService {
       debugPrint('NotificationService: Data Keys: ${message.data.keys}');
       debugPrint('NotificationService: Notification Title: ${message.notification?.title}');
       debugPrint('NotificationService: Notification Body: ${message.notification?.body}');
+      debugPrint('NotificationService: Android Image URL: ${message.notification?.android?.imageUrl}');
       debugPrint('NotificationService: Sent Time: ${message.sentTime}');
       debugPrint('================================');
       _showLocalNotification(message);
@@ -181,10 +182,15 @@ class NotificationService {
     try {
       final title = message.notification?.title ?? 'New Message';
       final body = message.notification?.body ?? 'You have a new notification';
+      final imageUrl = message.notification?.android?.imageUrl ?? 
+                      message.data['image'] ?? 
+                      message.data['imageUrl'] ??
+                      message.data['image_url'];
       
       debugPrint('=== CREATING LOCAL NOTIFICATION ===');
       debugPrint('NotificationService: Title: $title');
       debugPrint('NotificationService: Body: $body');
+      debugPrint('NotificationService: Image URL: $imageUrl');
       debugPrint('NotificationService: Message data: ${message.data}');
       debugPrint('NotificationService: Message notification: ${message.notification}');
       
@@ -248,7 +254,30 @@ class NotificationService {
         }
       }
       
-      const androidDetails = AndroidNotificationDetails(
+      ByteArrayAndroidBitmap? largeIcon;
+      BigPictureStyleInformation? styleInformation;
+      
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        debugPrint('NotificationService: Attempting to load image: $imageUrl');
+        try {
+          largeIcon = await _getImageBytes(imageUrl);
+          styleInformation = BigPictureStyleInformation(
+            largeIcon,
+            contentTitle: title,
+            summaryText: body,
+            htmlFormatContentTitle: true,
+            htmlFormatSummaryText: true,
+          );
+          debugPrint('NotificationService: ✅ Image loaded successfully for notification');
+        } catch (e) {
+          debugPrint('NotificationService: ❌ Error loading image for notification: $e');
+          // Fall back to text notification if image fails to load
+        }
+      } else {
+        debugPrint('NotificationService: No image URL provided, using text notification');
+      }
+      
+      final androidDetails = AndroidNotificationDetails(
         'fcm_channel',
         'FCM Notifications',
         channelDescription: 'Notifications from Firebase Cloud Messaging',
@@ -257,6 +286,13 @@ class NotificationService {
         showWhen: true,
         enableVibration: true,
         playSound: true,
+        largeIcon: largeIcon,
+        styleInformation: styleInformation ?? BigTextStyleInformation(
+          body,
+          contentTitle: title,
+          htmlFormatContentTitle: true,
+          htmlFormatBigText: true,
+        ),
       );
       
       const iosDetails = DarwinNotificationDetails(
@@ -265,7 +301,7 @@ class NotificationService {
         presentSound: true,
       );
       
-      const notificationDetails = NotificationDetails(
+      final notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
@@ -426,6 +462,57 @@ class NotificationService {
     }
   }
 
+  // Test method for your specific image URL
+  Future<void> testHourAndMoreImageNotification() async {
+    try {
+      const imageUrl = 'https://hourandmore.com/images/noti.png';
+      
+      await showChatNotification(
+        senderName: 'HourAndMore',
+        messageText: 'Check out this notification with image!',
+        senderId: 'test123',
+        receiverId: 'test456',
+        imageUrl: imageUrl,
+      );
+      
+      debugPrint('NotificationService: ✅ Test notification with HourAndMore image sent');
+    } catch (e) {
+      debugPrint('NotificationService: ❌ Error testing HourAndMore image notification: $e');
+    }
+  }
+
+  // Test method to simulate FCM message with image
+  Future<void> testFcmMessageWithImage() async {
+    try {
+      const imageUrl = 'https://hourandmore.com/images/noti.png';
+      
+      // Create a mock FCM message with image
+      final mockMessage = RemoteMessage(
+        data: {
+          'image': imageUrl,
+          'imageUrl': imageUrl,
+          'senderId': 'test123',
+          'receiverId': 'test456',
+          'type': 'chat',
+        },
+        notification: RemoteNotification(
+          title: 'HourAndMore',
+          body: 'Check out this FCM notification with image!',
+          android: AndroidNotification(
+            imageUrl: imageUrl,
+            channelId: 'fcm_channel',
+          ),
+        ),
+      );
+      
+      debugPrint('NotificationService: Testing FCM message with image: $imageUrl');
+      await _showLocalNotification(mockMessage);
+      debugPrint('NotificationService: ✅ FCM test notification with image sent');
+    } catch (e) {
+      debugPrint('NotificationService: ❌ Error testing FCM image notification: $e');
+    }
+  }
+
   Future<bool> checkNotificationPermissions() async {
     try {
       final settings = await _fcm.getNotificationSettings();
@@ -442,6 +529,7 @@ class NotificationService {
     required String messageText,
     required String senderId,
     required String receiverId,
+    String? imageUrl,
   }) async {
     try {
       // TEMPORARY WORKAROUND: Include user IDs in title since FCM data is not working
@@ -451,10 +539,12 @@ class NotificationService {
         'title': titleWithIds,
         'message': messageText,
         'token': receiverToken,
+        'image': imageUrl, // Add image URL to payload
         'data': {
           'senderId': senderId,
           'receiverId': receiverId,
           'type': 'chat',
+          'imageUrl': imageUrl, // Also include in data for FCM
         },
       };
       
@@ -462,6 +552,7 @@ class NotificationService {
       debugPrint('NotificationService: Receiver Token: $receiverToken');
       debugPrint('NotificationService: Sender Name: $senderName');
       debugPrint('NotificationService: Message Text: $messageText');
+      debugPrint('NotificationService: Image URL: $imageUrl');
       debugPrint('NotificationService: Sender ID: $senderId');
       debugPrint('NotificationService: Receiver ID: $receiverId');
       debugPrint('NotificationService: Full Payload: $payload');
@@ -502,8 +593,32 @@ class NotificationService {
     required String messageText,
     required String senderId,
     required String receiverId,
+    String? imageUrl,
   }) async {
     try {
+      ByteArrayAndroidBitmap? largeIcon;
+      BigPictureStyleInformation? styleInformation;
+      
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        debugPrint('NotificationService: Attempting to load image for chat notification: $imageUrl');
+        try {
+          largeIcon = await _getImageBytes(imageUrl);
+          styleInformation = BigPictureStyleInformation(
+            largeIcon,
+            contentTitle: senderName,
+            summaryText: messageText,
+            htmlFormatContentTitle: true,
+            htmlFormatSummaryText: true,
+          );
+          debugPrint('NotificationService: ✅ Image loaded successfully for chat notification');
+        } catch (e) {
+          debugPrint('NotificationService: ❌ Error loading image for chat notification: $e');
+          // Fall back to text notification if image fails to load
+        }
+      } else {
+        debugPrint('NotificationService: No image URL provided for chat notification, using text');
+      }
+      
       final androidDetails = AndroidNotificationDetails(
         'chat_channel',
         'Chat Messages',
@@ -514,6 +629,13 @@ class NotificationService {
         enableVibration: true,
         playSound: true,
         category: AndroidNotificationCategory.message,
+        largeIcon: largeIcon,
+        styleInformation: styleInformation ?? BigTextStyleInformation(
+          messageText,
+          contentTitle: senderName,
+          htmlFormatContentTitle: true,
+          htmlFormatBigText: true,
+        ),
       );
       
       final iosDetails = DarwinNotificationDetails(
@@ -620,5 +742,29 @@ class NotificationService {
     );
     
     debugPrint('NotificationService: Test local notification shown with payload: $payload');
+  }
+
+
+  Future<ByteArrayAndroidBitmap> _getImageBytes(String imageUrl) async {
+    try {
+      debugPrint('NotificationService: Loading image from: $imageUrl');
+      final response = await http.get(Uri.parse(imageUrl));
+      debugPrint('NotificationService: Image response status: ${response.statusCode}');
+      debugPrint('NotificationService: Image content length: ${response.bodyBytes.length} bytes');
+      
+      if (response.statusCode == 200) {
+        if (response.bodyBytes.isNotEmpty) {
+          debugPrint('NotificationService: ✅ Image loaded successfully');
+          return ByteArrayAndroidBitmap(response.bodyBytes);
+        } else {
+          throw Exception('Image response is empty');
+        }
+      } else {
+        throw Exception('HTTP ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      debugPrint('NotificationService: ❌ Error loading image from $imageUrl: $e');
+      throw Exception('Failed to load image: $e');
+    }
   }
 }
