@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "482094822759",
+    "project_id": "hourandmorechatapp",
+    "storage_bucket": "hourandmorechatapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482094822759:android:042a492e70600e74f02bc2",
+        "android_client_info": {
+          "package_name": "com.example.hourandmoreflutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtIzmt-ktVRJsvp1tkWRmri5sDq1-XKw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
