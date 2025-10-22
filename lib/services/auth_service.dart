@@ -124,21 +124,6 @@ class AuthService {
     }
   }
 
-  Future<void> updateFcmToken() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
-
-      final fcmToken = _notificationService.fcmToken;
-      if (fcmToken != null) {
-        await _firestore.collection(_usersCollection).doc(user.uid).update({
-          'fcmToken': fcmToken,
-        });
-      }
-    } catch (e) {
-      throw Exception('Failed to update FCM token: $e');
-    }
-  }
 
   Future<void> setBiometricEnabled(String uid, bool enabled) async {
     try {

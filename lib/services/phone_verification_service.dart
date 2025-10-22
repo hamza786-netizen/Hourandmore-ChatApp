@@ -10,8 +10,6 @@ class PhoneVerificationService {
 
   Future<Map<String, dynamic>> sendOtp(String phone) async {
     try {
-      print('Sending OTP to phone: $phone');
-      
       final response = await http.post(
         Uri.parse('$_baseUrl/v1/sendOtp'),
         headers: {
@@ -22,8 +20,6 @@ class PhoneVerificationService {
         }),
       );
 
-      print('Send OTP Response Status: ${response.statusCode}');
-      print('Send OTP Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         try {
@@ -57,7 +53,6 @@ class PhoneVerificationService {
         }
       }
     } catch (e) {
-      print('Send OTP Error: $e');
       return {
         'success': false,
         'message': 'Network error: ${e.toString()}',
@@ -72,8 +67,6 @@ class PhoneVerificationService {
     required String userType,
   }) async {
     try {
-      print('Confirming OTP for phone: $phone, code: $code, userType: $userType');
-      
       final response = await http.post(
         Uri.parse('$_baseUrl/v1/confirmOtp'),
         headers: {
@@ -86,8 +79,6 @@ class PhoneVerificationService {
         }),
       );
 
-      print('Confirm OTP Response Status: ${response.statusCode}');
-      print('Confirm OTP Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         try {
@@ -121,7 +112,6 @@ class PhoneVerificationService {
         }
       }
     } catch (e) {
-      print('Confirm OTP Error: $e');
       return {
         'success': false,
         'message': 'Network error: ${e.toString()}',

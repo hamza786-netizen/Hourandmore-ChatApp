@@ -5,6 +5,7 @@ import '../models/message.dart';
 import '../models/user.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/notification_service.dart';
 import 'settings_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -74,6 +75,65 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to send message: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendPushNotification() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.currentUser;
+
+    if (currentUser == null || widget.receiverUser == null) return;
+
+    try {
+      // Get the receiver's FCM token
+      final receiverToken = widget.receiverUser!.fcmToken;
+      if (receiverToken == null || receiverToken.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Receiver does not have a valid FCM token'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Send notification with image
+      await NotificationService.instance.sendChatNotification(
+        receiverToken: receiverToken,
+        senderName: currentUser.displayName,
+        messageText: 'You have a new message!',
+        senderId: currentUser.uid,
+        receiverId: widget.receiverUser!.uid,
+        imageUrl: 'https://hourandmore.com/images/noti.png',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications_active, color: Colors.white),
+                SizedBox(width: 12),
+                Text('Push notification sent with image!'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send notification: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -278,6 +338,18 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ],
         ),
         actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 22),
+              onPressed: _sendPushNotification,
+              tooltip: 'Send Push Notification',
+            ),
+          ),
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(

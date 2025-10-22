@@ -21,13 +21,6 @@ class UsersScreen extends StatelessWidget {
       final userData = usersSnapshot.docs.first.data();
       final testUser = AppUser.fromMap(userData);
       
-      // Test the local notification with payload
-      await NotificationService.instance.testLocalNotificationWithPayload(
-        senderId: testUser.uid,
-        receiverId: 'current_user_id', // This would be the current user's ID
-        senderName: testUser.displayName,
-        messageText: 'Test message for notification navigation',
-      );
       
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
