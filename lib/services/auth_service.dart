@@ -35,7 +35,7 @@ class AuthService {
 
       await user.updateDisplayName(displayName);
 
-      final fcmToken = _notificationService.fcmToken;
+      final fcmToken = await _notificationService.getFcmToken();
 
       final appUser = AppUser(
         uid: user.uid,
@@ -73,7 +73,7 @@ class AuthService {
       final user = userCredential.user;
       if (user == null) return null;
 
-      final fcmToken = _notificationService.fcmToken;
+      final fcmToken = await _notificationService.getFcmToken();
       if (fcmToken != null) {
         await _firestore.collection(_usersCollection).doc(user.uid).update({
           'fcmToken': fcmToken,
@@ -129,7 +129,7 @@ class AuthService {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      final fcmToken = _notificationService.fcmToken;
+      final fcmToken = await _notificationService.getFcmToken();
       if (fcmToken != null) {
         await _firestore.collection(_usersCollection).doc(user.uid).update({
           'fcmToken': fcmToken,

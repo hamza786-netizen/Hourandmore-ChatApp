@@ -21,12 +21,12 @@ class UsersScreen extends StatelessWidget {
       final userData = usersSnapshot.docs.first.data();
       final testUser = AppUser.fromMap(userData);
       
-      // Test the local notification with payload
-      await NotificationService.instance.testLocalNotificationWithPayload(
-        senderId: testUser.uid,
-        receiverId: 'current_user_id', // This would be the current user's ID
+      // Test the local notification
+      await NotificationService.instance.showChatNotification(
         senderName: testUser.displayName,
         messageText: 'Test message for notification navigation',
+        senderId: testUser.uid,
+        receiverId: 'current_user_id',
       );
       
       if (context.mounted) {
@@ -48,6 +48,7 @@ class UsersScreen extends StatelessWidget {
       }
     }
   }
+
 
   Future<void> _handleSignOut(BuildContext context) async {
     final confirm = await showDialog<bool>(
