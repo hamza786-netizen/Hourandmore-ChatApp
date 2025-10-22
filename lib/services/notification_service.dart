@@ -86,8 +86,6 @@ class NotificationService {
     }
   }
 
-  String? get fcmToken => _fcmToken;
-
   void _setupMessageHandlers() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       _showLocalNotification(message);
@@ -168,7 +166,7 @@ class NotificationService {
         presentSound: true,
       );
       
-      final notificationDetails = NotificationDetails(
+      const notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
@@ -224,10 +222,7 @@ class NotificationService {
           final senderData = senderDoc.data()!;
           final sender = AppUser.fromMap(senderData);
           
-          NavigationService.instance.navigateToChat(
-            senderId: sender.uid,
-            receiverId: sender.uid
-          );
+          NavigationService.instance.navigateToChat(sender);
         }
       }
     } catch (e) {
@@ -272,7 +267,7 @@ class NotificationService {
         presentSound: true,
       );
       
-      final notificationDetails = NotificationDetails(
+      const notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
@@ -425,7 +420,7 @@ class NotificationService {
         categoryIdentifier: 'chat_message',
       );
       
-      final notificationDetails = NotificationDetails(
+      const notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
