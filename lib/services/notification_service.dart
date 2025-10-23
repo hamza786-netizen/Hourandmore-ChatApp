@@ -24,6 +24,32 @@ class NotificationService {
     await _requestPermissions();
     await _getFcmToken();
     _setupMessageHandlers();
+    
+    // Test image URL accessibility
+    await _testImageUrl();
+  }
+  
+  Future<void> _testImageUrl() async {
+    const testImageUrl = 'https://via.placeholder.com/300x200/6C63FF/FFFFFF?text=Chat';
+    try {
+      print('Testing image URL accessibility...');
+      final response = await http.get(Uri.parse(testImageUrl));
+      print('Test image URL status: ${response.statusCode}');
+      print('Test image content type: ${response.headers['content-type']}');
+      print('Test image size: ${response.bodyBytes.length} bytes');
+      
+      // Test creating a ByteArrayAndroidBitmap
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        try {
+          final bitmap = ByteArrayAndroidBitmap(response.bodyBytes);
+          print('ByteArrayAndroidBitmap created successfully');
+        } catch (e) {
+          print('Failed to create ByteArrayAndroidBitmap: $e');
+        }
+      }
+    } catch (e) {
+      print('Test image URL failed: $e');
+    }
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -42,6 +68,24 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
+    
+    // Create notification channel for Android
+    await _createNotificationChannel();
+  }
+  
+  Future<void> _createNotificationChannel() async {
+    const androidChannel = AndroidNotificationChannel(
+      'chat_channel',
+      'Chat Messages',
+      description: 'Notifications for new chat messages',
+      importance: Importance.high,
+      enableVibration: true,
+      playSound: true,
+    );
+    
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(androidChannel);
   }
 
   Future<void> _requestPermissions() async {
@@ -387,15 +431,37 @@ class NotificationService {
       
       if (imageUrl != null && imageUrl.isNotEmpty) {
         try {
+          print('Attempting to load image from: $imageUrl');
           largeIcon = await _getImageBytes(imageUrl);
+          print('Image loaded successfully');
           styleInformation = BigPictureStyleInformation(
             largeIcon,
             contentTitle: senderName,
             summaryText: messageText,
-            htmlFormatContentTitle: true,
-            htmlFormatSummaryText: true,
+            htmlFormatContentTitle: false,
+            htmlFormatSummaryText: false,
+            largeIcon: largeIcon,
           );
         } catch (e) {
+          print('Failed to load image: $e');
+          // Try with a different image URL as fallback
+          try {
+            const fallbackImageUrl = 'https://picsum.photos/300/200';
+            print('Trying fallback image URL: $fallbackImageUrl');
+            largeIcon = await _getImageBytes(fallbackImageUrl);
+            print('Fallback image loaded successfully');
+            styleInformation = BigPictureStyleInformation(
+              largeIcon,
+              contentTitle: senderName,
+              summaryText: messageText,
+              htmlFormatContentTitle: false,
+              htmlFormatSummaryText: false,
+              largeIcon: largeIcon,
+            );
+          } catch (fallbackError) {
+            print('Fallback image also failed: $fallbackError');
+            // Continue without image
+          }
         }
       }
       
@@ -416,6 +482,9 @@ class NotificationService {
           htmlFormatContentTitle: true,
           htmlFormatBigText: true,
         ),
+        // Ensure the notification can display images
+        visibility: NotificationVisibility.public,
+        fullScreenIntent: false,
       );
       
       const iosDetails = DarwinNotificationDetails(
@@ -432,6 +501,10 @@ class NotificationService {
       
       final payload = 'chat_${senderId}_${receiverId}';
       
+      print('Creating notification with image: ${imageUrl != null ? 'Yes' : 'No'}');
+      print('Large icon: ${largeIcon != null ? 'Present' : 'Not present'}');
+      print('Style information: ${styleInformation != null ? 'Present' : 'Not present'}');
+      
       await _localNotifications.show(
         DateTime.now().millisecondsSinceEpoch ~/ 1000,
         senderName,
@@ -439,15 +512,23 @@ class NotificationService {
         notificationDetails,
         payload: payload,
       );
+      
+      print('Notification created successfully');
     } catch (e) {
     }
   }
 
   Future<ByteArrayAndroidBitmap> _getImageBytes(String imageUrl) async {
     try {
+      print('Making HTTP request to: $imageUrl');
       final response = await http.get(Uri.parse(imageUrl));
+      print('HTTP response status: ${response.statusCode}');
+      print('Response headers: ${response.headers}');
+      print('Response body length: ${response.bodyBytes.length}');
+      
       if (response.statusCode == 200) {
         if (response.bodyBytes.isNotEmpty) {
+          print('Image downloaded successfully');
           return ByteArrayAndroidBitmap(response.bodyBytes);
         } else {
           throw Exception('Image response is empty');
@@ -456,6 +537,7 @@ class NotificationService {
         throw Exception('HTTP ${response.statusCode}: ${response.reasonPhrase}');
       }
     } catch (e) {
+      print('Error in _getImageBytes: $e');
       throw Exception('Failed to load image: $e');
     }
   }

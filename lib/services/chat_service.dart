@@ -50,6 +50,7 @@ class ChatService {
           messageText: message.text,
           senderId: message.senderId,
           receiverId: message.receiverId,
+          imageUrl: 'https://via.placeholder.com/300x200/6C63FF/FFFFFF?text=Chat',
         );
       }
     } catch (e) {
@@ -66,6 +67,7 @@ class ChatService {
         messageText: message.text,
         senderId: message.senderId,
         receiverId: message.receiverId,
+        imageUrl: 'https://via.placeholder.com/300x200/6C63FF/FFFFFF?text=Chat',
       );
     } catch (e) {
     }
@@ -143,6 +145,7 @@ class ChatService {
         messageText: message.text,
         senderId: message.senderId,
         receiverId: message.receiverId,
+        imageUrl: 'https://via.placeholder.com/300x200/6C63FF/FFFFFF?text=Chat',
       );
     } catch (e) {
     }
