@@ -23,7 +23,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   
   bool _isLoading = false;
   String? _errorMessage;
-  String _userType = 'tenant'; // Default user type
+  String _userType = 'tenant';
 
   @override
   void dispose() {
@@ -65,7 +65,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     if (result['success'] == true) {
       if (mounted) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'OTP verified successfully!'),
@@ -74,7 +73,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           ),
         );
         
-        // Navigate back to login screen after showing success
         Future.delayed(const Duration(seconds: 2), () {
           if (mounted) {
             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -160,7 +158,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo/Icon
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -182,7 +179,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   ),
                   const SizedBox(height: 32),
                   
-                  // Title
                   const Text(
                     'Verify OTP',
                     style: TextStyle(
@@ -202,7 +198,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   ),
                   const SizedBox(height: 40),
                   
-                  // OTP Form
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -220,7 +215,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // OTP Input Fields
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: List.generate(4, (index) {
@@ -267,7 +261,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Error Message
                           if (_errorMessage != null)
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -295,7 +288,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           
                           if (_errorMessage != null) const SizedBox(height: 16),
                           
-                          // User Type Selection
                           DropdownButtonFormField<String>(
                             value: _userType,
                             decoration: InputDecoration(
@@ -328,7 +320,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           ),
                           const SizedBox(height: 24),
                           
-                          // Verify Button
                           SizedBox(
                             width: double.infinity,
                             height: 50,
@@ -357,7 +348,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Resend OTP Button
                           TextButton(
                             onPressed: _isLoading ? null : _resendOtp,
                             child: const Text(
@@ -374,7 +364,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Back Button
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();

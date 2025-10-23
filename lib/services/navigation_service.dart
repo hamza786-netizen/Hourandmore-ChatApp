@@ -33,28 +33,35 @@ class NavigationService {
     }
 
     try {
+      print('Navigating to chat - SenderId: $senderId, ReceiverId: $receiverId');
+      
       final senderDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(senderId)
           .get();
 
       if (!senderDoc.exists) {
+        print('Sender user not found: $senderId');
         return;
       }
 
       final senderData = senderDoc.data()!;
       final senderUser = AppUser.fromMap(senderData);
+      print('Found sender user: ${senderUser.displayName}');
 
       final finalContext = currentContext;
       if (finalContext != null && finalContext.mounted) {
+        print('Navigating to chat screen with: ${senderUser.displayName}');
         Navigator.of(finalContext).push(
           MaterialPageRoute(
             builder: (_) => ChatScreen(receiverUser: senderUser),
           ),
         );
+      } else {
+        print('Context not available for navigation');
       }
     } catch (e) {
-      // Handle navigation error silently
+      print('Error navigating to chat: $e');
     }
   }
 

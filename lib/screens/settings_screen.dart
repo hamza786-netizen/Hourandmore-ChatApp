@@ -30,7 +30,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _toggleBiometric(AuthProvider authProvider, bool currentValue) async {
     if (currentValue) {
-      // Disable biometric
       final success = await authProvider.disableBiometric();
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -41,7 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     } else {
-      // Enable biometric - need to verify password
       await _showPasswordDialog(authProvider);
     }
   }
@@ -148,7 +146,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Account Section
               _buildSectionTitle('Account Information'),
               _buildInfoCard(
                 icon: Icons.person_outline,
@@ -164,10 +161,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const SizedBox(height: 32),
 
-              // Security Section
               _buildSectionTitle('Security'),
               
-              // Biometric Authentication Card
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -228,7 +223,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const SizedBox(height: 24),
 
-              // Device Information Section
               _buildSectionTitle('Device Information'),
               Card(
                 elevation: 2,
@@ -281,7 +275,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
               const SizedBox(height: 32),
 
-              // Exit
               _buildSectionTitle('Exit'),
               Card(
                 elevation: 2,

@@ -12,7 +12,15 @@ import 'screens/users_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('=== BACKGROUND NOTIFICATION RECEIVED ===');
+  print('📱 Title: ${message.notification?.title}');
+  print('📝 Body: ${message.notification?.body}');
+  print('📦 Data: ${message.data}');
+  print('🔍 Data Keys: ${message.data.keys.toList()}');
+  
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  print('✅ Background handler completed');
 }
 
 void main() async {
@@ -44,7 +52,6 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
-          // Process pending navigation when app becomes ready
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (authProvider.isAuthenticated && !authProvider.isLoading) {
               NavigationService.instance.processPendingNavigation();

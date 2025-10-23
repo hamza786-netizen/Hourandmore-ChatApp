@@ -14,7 +14,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   static NotificationService get instance => _instance;
   NotificationService._internal();
-
+  
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   String? _fcmToken;
@@ -53,39 +53,39 @@ class NotificationService {
   }
 
   Future<void> _initializeLocalNotifications() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const initSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await _localNotifications.initialize(
-      initSettings,
+      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
+      
+      await _localNotifications.initialize(
+        initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
     
     // Create notification channel for Android
-    await _createNotificationChannel();
+      await _createNotificationChannel();
   }
-  
+
   Future<void> _createNotificationChannel() async {
-    const androidChannel = AndroidNotificationChannel(
+      const androidChannel = AndroidNotificationChannel(
       'chat_channel',
       'Chat Messages',
       description: 'Notifications for new chat messages',
-      importance: Importance.high,
+        importance: Importance.high,
       enableVibration: true,
       playSound: true,
-    );
-    
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidChannel);
+      );
+      
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(androidChannel);
   }
 
   Future<void> _requestPermissions() async {
@@ -157,24 +157,53 @@ class NotificationService {
                       message.data['imageUrl'] ??
                       message.data['image_url'];
       
+      print('=== FOREGROUND NOTIFICATION RECEIVED ===');
+      print('📱 Title: $title');
+      print('📝 Body: $body');
+      print('🖼️ Image URL: $imageUrl');
+      print('📦 Raw Data: ${message.data}');
+      print('🔍 Data Keys: ${message.data.keys.toList()}');
+      
       String? payload;
       final data = message.data;
       
+      print('🔍 Checking for sender/receiver data...');
       if (data.containsKey('senderId') && data.containsKey('receiverId')) {
         payload = 'chat_${data['senderId']}_${data['receiverId']}';
+        print('✅ Found senderId and receiverId in data');
+        print('   SenderId: ${data['senderId']}');
+        print('   ReceiverId: ${data['receiverId']}');
+        print('   Generated Payload: $payload');
       } else if (data.containsKey('sender_id') && data.containsKey('receiver_id')) {
         payload = 'chat_${data['sender_id']}_${data['receiver_id']}';
+        print('✅ Found sender_id and receiver_id in data');
+        print('   SenderId: ${data['sender_id']}');
+        print('   ReceiverId: ${data['receiver_id']}');
+        print('   Generated Payload: $payload');
       } else if (title.contains('|') && title.split('|').length >= 3) {
         final parts = title.split('|');
         final senderId = parts[1];
         final receiverId = parts[2];
         payload = 'chat_${senderId}_${receiverId}';
+        print('✅ Found UID format in title');
+        print('   Title parts: $parts');
+        print('   SenderId: $senderId');
+        print('   ReceiverId: $receiverId');
+        print('   Generated Payload: $payload');
+      } else {
+        print('❌ No valid sender/receiver data found');
+        print('   Available data keys: ${data.keys.toList()}');
+        print('   Title format check: ${title.contains('|') ? 'Contains |' : 'No | found'}');
+        if (title.contains('|')) {
+          print('   Title parts count: ${title.split('|').length}');
+        }
       }
       
       ByteArrayAndroidBitmap? largeIcon;
       BigPictureStyleInformation? styleInformation;
       
       if (imageUrl != null && imageUrl.isNotEmpty) {
+        print('Attempting to load image: $imageUrl');
         try {
           largeIcon = await _getImageBytes(imageUrl);
           styleInformation = BigPictureStyleInformation(
@@ -184,8 +213,12 @@ class NotificationService {
             htmlFormatContentTitle: true,
             htmlFormatSummaryText: true,
           );
-        } catch (e) {
+          print('✅ Image loaded successfully for foreground notification');
+            } catch (e) {
+          print('❌ Error loading image for foreground notification: $e');
         }
+      } else {
+        print('No image URL provided for foreground notification');
       }
       
       final androidDetails = AndroidNotificationDetails(
@@ -217,6 +250,11 @@ class NotificationService {
         iOS: iosDetails,
       );
       
+      print('Creating notification with:');
+      print('- Large icon: ${largeIcon != null ? 'Present' : 'Not present'}');
+      print('- Style information: ${styleInformation != null ? 'Present' : 'Not present'}');
+      print('- Image URL: $imageUrl');
+      
       await _localNotifications.show(
         DateTime.now().millisecondsSinceEpoch ~/ 1000,
         title,
@@ -224,57 +262,111 @@ class NotificationService {
         notificationDetails,
         payload: payload,
       );
+      
+      print('✅ Foreground notification created successfully');
     } catch (e) {
+      print('❌ Error creating foreground notification: $e');
     }
   }
 
   void _onNotificationTapped(NotificationResponse response) {
+    print('=== LOCAL NOTIFICATION TAPPED ===');
+    print('📱 Payload: ${response.payload}');
+    print('🔍 Action ID: ${response.actionId}');
+    print('📝 Input: ${response.input}');
+    
     final payload = response.payload;
     if (payload != null && payload.startsWith('chat_')) {
+      print('✅ Valid chat payload found, processing...');
       _handleChatNotificationTap(payload);
+    } else {
+      print('❌ Invalid or missing payload');
+      print('   Payload: $payload');
+      print('   Starts with chat_: ${payload?.startsWith('chat_') ?? false}');
     }
   }
 
   Future<void> _handleNotificationTap(RemoteMessage message) async {
+    print('=== FCM NOTIFICATION TAPPED ===');
+    print('📱 Title: ${message.notification?.title}');
+    print('📝 Body: ${message.notification?.body}');
+    print('📦 Data: ${message.data}');
+    print('🔍 Data Keys: ${message.data.keys.toList()}');
+    
     final data = message.data;
+    
     if (data.containsKey('senderId') && data.containsKey('receiverId')) {
-      await _handleChatNotificationTap('chat_${data['senderId']}_${data['receiverId']}');
+      print('✅ Found senderId and receiverId in data');
+      print('   SenderId: ${data['senderId']}');
+      print('   ReceiverId: ${data['receiverId']}');
+      final payload = 'chat_${data['senderId']}_${data['receiverId']}';
+      print('   Generated Payload: $payload');
+      await _handleChatNotificationTap(payload);
     } else if (data.containsKey('sender_id') && data.containsKey('receiver_id')) {
-      await _handleChatNotificationTap('chat_${data['sender_id']}_${data['receiver_id']}');
+      print('✅ Found sender_id and receiver_id in data');
+      print('   SenderId: ${data['sender_id']}');
+      print('   ReceiverId: ${data['receiver_id']}');
+      final payload = 'chat_${data['sender_id']}_${data['receiver_id']}';
+      print('   Generated Payload: $payload');
+      await _handleChatNotificationTap(payload);
     } else {
       final title = message.notification?.title ?? '';
+      print('🔍 Checking title for UID format: $title');
       if (title.contains('|') && title.split('|').length >= 3) {
         final parts = title.split('|');
         final senderId = parts[1];
         final receiverId = parts[2];
-        await _handleChatNotificationTap('chat_${senderId}_${receiverId}');
+        print('✅ Found UID format in title');
+        print('   Title parts: $parts');
+        print('   SenderId: $senderId');
+        print('   ReceiverId: $receiverId');
+        final payload = 'chat_${senderId}_${receiverId}';
+        print('   Generated Payload: $payload');
+        await _handleChatNotificationTap(payload);
+      } else {
+        print('❌ No valid sender/receiver data found in notification');
+        print('   Available data keys: ${data.keys.toList()}');
+        print('   Title format check: ${title.contains('|') ? 'Contains |' : 'No | found'}');
+        if (title.contains('|')) {
+          print('   Title parts count: ${title.split('|').length}');
+        }
       }
     }
   }
 
   Future<void> _handleChatNotificationTap(String payload) async {
+    print('=== PROCESSING CHAT NOTIFICATION TAP ===');
+    print('📱 Payload: $payload');
+    
     try {
       final parts = payload.split('_');
+      print('🔍 Payload parts: $parts');
+      print('🔍 Parts count: ${parts.length}');
+      
       if (parts.length >= 3) {
         final senderId = parts[1];
         final receiverId = parts[2];
         
-        final senderDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(senderId)
-            .get();
+        print('✅ Extracted IDs from payload:');
+        print('   SenderId: $senderId');
+        print('   ReceiverId: $receiverId');
+        print('🚀 Navigating to chat...');
         
-        if (senderDoc.exists) {
-          final senderData = senderDoc.data()!;
-          final sender = AppUser.fromMap(senderData);
-          
-          NavigationService.instance.navigateToChat(
-            senderId: sender.uid,
-            receiverId: sender.uid
-          );
-        }
+        // Navigate to chat with the sender (person who sent the message)
+        await NavigationService.instance.navigateToChat(
+          senderId: senderId,
+          receiverId: receiverId,
+        );
+        
+        print('✅ Navigation request sent successfully');
+      } else {
+        print('❌ Invalid payload format - not enough parts');
+        print('   Expected format: chat_senderId_receiverId');
+        print('   Actual parts: $parts');
       }
     } catch (e) {
+      print('❌ Error handling chat notification tap: $e');
+      print('   Stack trace: ${StackTrace.current}');
     }
   }
 
@@ -368,8 +460,22 @@ class NotificationService {
         ),
       );
       
+      print('🧪 Testing FCM message with image in foreground...');
       await _showLocalNotification(mockMessage);
     } catch (e) {
+      print('❌ Error in testFcmMessageWithImage: $e');
+    }
+  }
+
+  Future<void> testImageLoading() async {
+    try {
+      const imageUrl = 'https://hourandmore.com/images/noti.png';
+      print('🧪 Testing image loading: $imageUrl');
+      
+      final bitmap = await _getImageBytes(imageUrl);
+      print('✅ Image loaded successfully, bitmap created');
+    } catch (e) {
+      print('❌ Image loading failed: $e');
     }
   }
 
@@ -392,21 +498,34 @@ class NotificationService {
     String? imageUrl,
   }) async {
     try {
-      final titleWithIds = '$senderName|$senderId|$receiverId';
-      
       final payload = {
-        'title': titleWithIds,
+        'title': senderName,
         'message': messageText,
         'token': receiverToken,
-        'image': imageUrl,
         'data': {
+          'type': 'chat',
           'senderId': senderId,
           'receiverId': receiverId,
-          'type': 'chat',
-          'imageUrl': imageUrl,
+          'senderEmail': senderName,
+          'chatType': 'direct_message',
         },
       };
-
+      
+      print('🚀 Sending Push Notification:');
+      print('📱 API URL: https://staging.hourandmore.sa/api/send-fcm-notification');
+      print('📦 Payload:');
+      print('   Title: ${payload['title']}');
+      print('   Message: ${payload['message']}');
+      print('   Token: ${payload['token']}');
+      print('   Data:');
+      final data = payload['data'] as Map<String, dynamic>;
+      print('     Type: ${data['type']}');
+      print('     SenderId: ${data['senderId']}');
+      print('     ReceiverId: ${data['receiverId']}');
+      print('     SenderEmail: ${data['senderEmail']}');
+      print('     ChatType: ${data['chatType']}');
+      print('📄 Full JSON Payload: ${jsonEncode(payload)}');
+      
       final response = await http.post(
         Uri.parse('https://staging.hourandmore.sa/api/send-fcm-notification'),
         headers: {
@@ -414,7 +533,17 @@ class NotificationService {
         },
         body: jsonEncode(payload),
       );
+      
+      print('📡 API Response Status: ${response.statusCode}');
+      print('📡 API Response Body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        print('✅ Push notification sent successfully!');
+      } else {
+        print('❌ Push notification failed with status: ${response.statusCode}');
+      }
     } catch (e) {
+      print('❌ Error sending push notification: $e');
     }
   }
 
@@ -501,9 +630,15 @@ class NotificationService {
       
       final payload = 'chat_${senderId}_${receiverId}';
       
-      print('Creating notification with image: ${imageUrl != null ? 'Yes' : 'No'}');
-      print('Large icon: ${largeIcon != null ? 'Present' : 'Not present'}');
-      print('Style information: ${styleInformation != null ? 'Present' : 'Not present'}');
+      print('📱 Creating Local Notification:');
+      print('   Sender: $senderName');
+      print('   Message: $messageText');
+      print('   SenderId: $senderId');
+      print('   ReceiverId: $receiverId');
+      print('   Payload: $payload');
+      print('   Image URL: ${imageUrl ?? 'None'}');
+      print('   Large icon: ${largeIcon != null ? 'Present' : 'Not present'}');
+      print('   Style information: ${styleInformation != null ? 'Present' : 'Not present'}');
       
       await _localNotifications.show(
         DateTime.now().millisecondsSinceEpoch ~/ 1000,

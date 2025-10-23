@@ -116,7 +116,6 @@ class Listing {
     );
   }
 
-  // Helper methods for safe type conversion
   static int? _parseInt(dynamic value) {
     if (value == null) return null;
     if (value is int) return value;

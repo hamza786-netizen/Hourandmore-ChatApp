@@ -84,7 +84,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo/Icon
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -106,7 +105,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                   ),
                   const SizedBox(height: 32),
                   
-                  // Title
                   const Text(
                     'Phone Verification',
                     style: TextStyle(
@@ -125,7 +123,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                   ),
                   const SizedBox(height: 40),
                   
-                  // Phone Form
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -143,7 +140,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          // Phone Field
                           TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
@@ -173,7 +169,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                           ),
                           const SizedBox(height: 16),
                           
-                          // Error Message
                           if (_errorMessage != null)
                             Container(
                               padding: const EdgeInsets.all(12),
@@ -201,7 +196,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                           
                           if (_errorMessage != null) const SizedBox(height: 16),
                           
-                          // Send OTP Button
                           SizedBox(
                             width: double.infinity,
                             height: 50,
@@ -234,7 +228,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                   ),
                   const SizedBox(height: 24),
                   
-                  // Back Button
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
