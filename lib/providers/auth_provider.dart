@@ -87,7 +87,6 @@ class AuthProvider with ChangeNotifier {
     required String password,
     bool saveBiometric = false,
   }) async {
-    _setLoading(true);
     _errorMessage = null;
 
     try {
@@ -108,16 +107,17 @@ class AuthProvider with ChangeNotifier {
           _currentUser = _currentUser?.copyWith(biometricEnabled: true);
         }
 
-        _setLoading(false);
+        // Don't set loading to false here - let the UI handle it
         return true;
       }
 
-      _errorMessage = 'Sign in failed';
-      _setLoading(false);
+      // Invalid credentials - show error immediately without loading
+      _errorMessage = 'Invalid email or password. Please try again.';
       return false;
     } catch (e) {
-      _errorMessage = e.toString();
-      _setLoading(false);
+      // Invalid credentials - show error immediately without loading
+      String message = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = message;
       return false;
     }
   }
@@ -128,14 +128,12 @@ class AuthProvider with ChangeNotifier {
       return false;
     }
 
-    _setLoading(true);
     _errorMessage = null;
 
     try {
       final hasCredentials = await _biometricService.hasCredentials();
       if (!hasCredentials) {
         _errorMessage = 'No saved credentials for biometric login';
-        _setLoading(false);
         return false;
       }
 
@@ -145,24 +143,22 @@ class AuthProvider with ChangeNotifier {
 
       if (!authenticated) {
         _errorMessage = 'Biometric authentication failed';
-        _setLoading(false);
         return false;
       }
 
       final credentials = await _biometricService.getCredentials();
       if (credentials == null) {
         _errorMessage = 'Failed to retrieve credentials';
-        _setLoading(false);
         return false;
       }
 
+      // Sign in - this will show loading if credentials are valid
       return await signIn(
         email: credentials['email']!,
         password: credentials['password']!,
       );
     } catch (e) {
       _errorMessage = e.toString();
-      _setLoading(false);
       return false;
     }
   }
@@ -229,6 +225,31 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = e.toString();
       _setLoading(false);
       return false;
+    }
+  }
+
+  Future<void> verifyAndUpdatePhone(String phoneNumber) async {
+    if (_currentUser == null) return;
+
+    _setLoading(true);
+    _errorMessage = null;
+
+    try {
+      await _authService.updatePhoneNumber(
+        _currentUser!.uid,
+        phoneNumber,
+        true,
+      );
+      
+      _currentUser = _currentUser?.copyWith(
+        phoneNumber: phoneNumber,
+        isPhoneVerified: true,
+      );
+      
+      _setLoading(false);
+    } catch (e) {
+      _errorMessage = e.toString();
+      _setLoading(false);
     }
   }
 

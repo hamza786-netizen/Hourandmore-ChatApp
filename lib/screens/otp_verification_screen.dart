@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../services/phone_verification_service.dart';
+import '../providers/auth_provider.dart';
+import 'users_screen.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String phone;
@@ -65,17 +68,24 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     if (result['success'] == true) {
       if (mounted) {
+        // Update phone number in user profile
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.verifyAndUpdatePhone(widget.phone);
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'OTP verified successfully!'),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
           ),
         );
         
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Navigate to UsersScreen after successful verification
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const UsersScreen()),
+            );
           }
         });
       }
@@ -138,6 +148,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: true, // Keep back button to go back to phone entry
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -363,19 +374,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Back to Phone Verification',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

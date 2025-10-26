@@ -28,47 +28,352 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF6C63FF),
+            strokeWidth: 3,
+          ),
+        );
+      },
+    );
+  }
+
+  void _hideLoadingDialog() {
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _showWelcomeDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.green[50]!,
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.green[200]!,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.green[600],
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Welcome!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Login successful',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          elevation: 10,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.grey[50]!,
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.red[200]!,
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.error_outline_rounded,
+                    color: Colors.red[600],
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Login Failed',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[700],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    message,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[600],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: const Text(
+                      'Try Again',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    final success = await authProvider.signIn(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      saveBiometric: _rememberMe && authProvider.biometricAvailable,
-    );
+    try {
+      final success = await authProvider.signIn(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        saveBiometric: _rememberMe && authProvider.biometricAvailable,
+      );
 
-    if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const UsersScreen()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Login failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (success) {
+        // Get current user before any delays
+        final currentUser = authProvider.currentUser;
+        
+        // Small delay to ensure state is ready
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Show centered loading dialog
+        if (mounted) {
+          _showLoadingDialog();
+        }
+        
+        // Wait 1 second to show the loader before navigation
+        await Future.delayed(const Duration(seconds: 1));
+        
+        // Hide loading dialog
+        if (mounted) {
+          _hideLoadingDialog();
+        }
+        
+        // Show welcome dialog
+        if (mounted) {
+          _showWelcomeDialog();
+        }
+        
+        // Wait 2 seconds to show welcome dialog
+        await Future.delayed(const Duration(seconds: 2));
+        
+        // Close welcome dialog
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        
+        // Check if user exists and needs phone verification
+        if (currentUser != null && (currentUser.phoneNumber == null || !(currentUser.isPhoneVerified ?? false))) {
+          // Navigate to phone verification screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => const PhoneVerificationScreen(),
+              ),
+            );
+          }
+        } else {
+          // Navigate directly to users screen if phone is already verified
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const UsersScreen()),
+            );
+          }
+        }
+      } else {
+        // Show error dialog for incorrect credentials
+        if (mounted) {
+          _showErrorDialog('Invalid email or password. Please try again.');
+        }
+      }
+    } catch (e) {
+      // Show error dialog on exception
+      if (mounted) {
+        _showErrorDialog('Authentication failed. Please try again.');
+      }
     }
   }
 
   Future<void> _handleBiometricLogin() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    final success = await authProvider.signInWithBiometric();
+    try {
+      final success = await authProvider.signInWithBiometric();
 
-    if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const UsersScreen()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Biometric login failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (success) {
+        // Get current user before any delays
+        final currentUser = authProvider.currentUser;
+        
+        // Small delay to ensure state is ready
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Show centered loading dialog
+        if (mounted) {
+          _showLoadingDialog();
+        }
+        
+        // Wait 1 second to show the loader before navigation
+        await Future.delayed(const Duration(seconds: 1));
+        
+        // Hide loading dialog
+        if (mounted) {
+          _hideLoadingDialog();
+        }
+        
+        // Show welcome dialog
+        if (mounted) {
+          _showWelcomeDialog();
+        }
+        
+        // Wait 2 seconds to show welcome dialog
+        await Future.delayed(const Duration(seconds: 2));
+        
+        // Close welcome dialog
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+        
+        // Check if user exists and needs phone verification
+        if (currentUser != null && (currentUser.phoneNumber == null || !(currentUser.isPhoneVerified ?? false))) {
+          // Navigate to phone verification screen
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (_) => const PhoneVerificationScreen(),
+              ),
+            );
+          }
+        } else {
+          // Navigate directly to users screen if phone is already verified
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const UsersScreen()),
+            );
+          }
+        }
+      } else {
+        // Show error dialog for biometric authentication failure
+        if (mounted) {
+          _showErrorDialog('Biometric authentication failed. Please try again.');
+        }
+      }
+    } catch (e) {
+      // Show error dialog on exception
+      if (mounted) {
+        _showErrorDialog('Biometric authentication failed. Please try again.');
+      }
     }
   }
 

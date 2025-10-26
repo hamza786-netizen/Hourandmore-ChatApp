@@ -6,6 +6,8 @@ class AppUser {
   final DateTime? lastLoginAt;
   final bool biometricEnabled;
   final String? fcmToken;
+  final String? phoneNumber;
+  final bool? isPhoneVerified;
 
   AppUser({
     required this.uid,
@@ -15,6 +17,8 @@ class AppUser {
     this.lastLoginAt,
     this.biometricEnabled = false,
     this.fcmToken,
+    this.phoneNumber,
+    this.isPhoneVerified = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +30,8 @@ class AppUser {
       'lastLoginAt': lastLoginAt?.millisecondsSinceEpoch,
       'biometricEnabled': biometricEnabled,
       'fcmToken': fcmToken,
+      'phoneNumber': phoneNumber,
+      'isPhoneVerified': isPhoneVerified,
     };
   }
 
@@ -40,6 +46,8 @@ class AppUser {
           : null,
       biometricEnabled: map['biometricEnabled'] as bool? ?? false,
       fcmToken: map['fcmToken'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      isPhoneVerified: map['isPhoneVerified'] as bool? ?? false,
     );
   }
 
@@ -51,6 +59,8 @@ class AppUser {
     DateTime? lastLoginAt,
     bool? biometricEnabled,
     String? fcmToken,
+    String? phoneNumber,
+    bool? isPhoneVerified,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -60,6 +70,8 @@ class AppUser {
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       biometricEnabled: biometricEnabled ?? this.biometricEnabled,
       fcmToken: fcmToken ?? this.fcmToken,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
     );
   }
 }

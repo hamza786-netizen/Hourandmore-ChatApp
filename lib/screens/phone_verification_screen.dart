@@ -64,6 +64,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false, // Remove back button
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -106,7 +107,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                   const SizedBox(height: 32),
                   
                   const Text(
-                    'Phone Verification',
+                    'Verify Your Phone',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -115,7 +116,8 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Enter your phone number to continue',
+                    'Complete your account verification\nby confirming your phone number',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white70,
@@ -227,19 +229,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text(
-                      'Back to Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

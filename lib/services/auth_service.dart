@@ -87,7 +87,7 @@ class AuthService {
 
       return await getUserData(user.uid);
     } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+      throw Exception(_handleAuthException(e));
     } catch (e) {
       throw Exception('Sign in failed: $e');
     }
@@ -135,6 +135,17 @@ class AuthService {
     }
   }
 
+  Future<void> updatePhoneNumber(String uid, String phoneNumber, bool isVerified) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(uid).update({
+        'phoneNumber': phoneNumber,
+        'isPhoneVerified': isVerified,
+      });
+    } catch (e) {
+      throw Exception('Failed to update phone number: $e');
+    }
+  }
+
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -159,27 +170,28 @@ class AuthService {
   }
 
   String _handleAuthException(FirebaseAuthException e) {
+    // Check for specific error message
+    if (e.message?.contains('The supplied auth credential is incorrect, malformed or has expired') == true) {
+      return 'Invalid credentials';
+    }
+    
     switch (e.code) {
       case 'user-not-found':
-        return 'No user found with this email';
+        return 'No user found with this email address';
       case 'wrong-password':
-        return 'Incorrect password';
-      case 'email-already-in-use':
-        return 'An account already exists with this email';
+        return 'Incorrect password. Please try again';
       case 'invalid-email':
         return 'Invalid email address';
-      case 'weak-password':
-        return 'Password is too weak. Use at least 6 characters';
-      case 'user-disabled':
-        return 'This account has been disabled';
-      case 'too-many-requests':
-        return 'Too many attempts. Please try again later';
-      case 'operation-not-allowed':
-        return 'Operation not allowed. Please contact support';
+      case 'invalid-credential':
+        return 'Invalid credentials';
       case 'network-request-failed':
         return 'Network error. Please check your connection';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later';
+      case 'user-disabled':
+        return 'This account has been disabled';
       default:
-        return 'Authentication error: ${e.message ?? e.code}';
+        return 'Invalid credentials';
     }
   }
 
